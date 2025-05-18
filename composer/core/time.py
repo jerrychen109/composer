@@ -14,6 +14,9 @@ The :class:`~.time.Time` class represents static durations of training time or p
 of a specific :class:`~.time.TimeUnit` enum. This class supports comparisons, arithmetic, and conversions.
 
 See the :doc:`Time Guide </trainer/time>` for more details on tracking time during training.
+
+Note: When using distributed training, be aware that timestamp operations may cause device synchronizations across ranks,
+which could potentially create performance bottlenecks during checkpointing.
 """
 from __future__ import annotations
 
@@ -211,7 +214,7 @@ class Time(Generic[TValue], Serializable):
     def from_token(cls, token: int) -> Time:
         """Create a :class:`Time` with units of :attr:`TimeUnit.TOKEN`.
 
-        Equivalent to ``Time(sample, TimeUnit.TOKEN)``.
+        Equivalent to ``Time(token, TimeUnit.TOKEN)``.
 
         Args:
             token (int): Number of tokens.
@@ -869,7 +872,6 @@ class Timestamp(Serializable):
             >>> timestamp.copy(
             ...     epoch=timestamp.epoch + 1,
             ...     epoch_in_iteration=timestamp.epoch_in_iteration + 1,
-            ...     token_in_iteration=timestamp.token_in_iteration + tokens,
             ...     batch_in_epoch=0,
             ...     sample_in_epoch=0,
             ...     token_in_epoch=0,
@@ -881,7 +883,6 @@ class Timestamp(Serializable):
             Timestamp(...)
 
         Args:
-            tokens (int | Time, optional): The number of tokens trained in the batch. Defaults to 0.
             duration (datetime.timedelta, optional): The duration to train the batch.
 
         """
