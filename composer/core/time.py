@@ -869,7 +869,6 @@ class Timestamp(Serializable):
             >>> timestamp.copy(
             ...     epoch=timestamp.epoch + 1,
             ...     epoch_in_iteration=timestamp.epoch_in_iteration + 1,
-            ...     token_in_iteration=timestamp.token_in_iteration + tokens,
             ...     batch_in_epoch=0,
             ...     sample_in_epoch=0,
             ...     token_in_epoch=0,
@@ -881,7 +880,6 @@ class Timestamp(Serializable):
             Timestamp(...)
 
         Args:
-            tokens (int | Time, optional): The number of tokens trained in the batch. Defaults to 0.
             duration (datetime.timedelta, optional): The duration to train the batch.
 
         """
