@@ -6,7 +6,7 @@ from typing import Mapping, Union
 import pytest
 import torch
 
-from composer.core.data_spec import _split_list, _split_tensor, default_split_batch
+from composer.core.data_spec import _split_list, _split_mapping, _split_tensor, default_split_batch
 
 
 def dummy_tensor_batch(batch_size=12) -> torch.Tensor:
@@ -179,3 +179,25 @@ def test_primitive_broadcast(batch):
     assert len(microbatches) == 4
     for mb in microbatches:
         assert mb['meta'] == 'this is a string'
+
+
+def test_split_mapping_unequal_chunks():
+    """Test that _split_mapping raises ValueError when batch values have different first-dimension lengths."""
+    batch = {
+        'input_ids': torch.randn(8, 4),
+        'labels': torch.randn(4, 4),
+    }
+    with pytest.raises(ValueError, match='unequal chunks'):
+        _split_mapping(batch, microbatch_size=2)
+
+
+def test_split_mapping_equal_chunks():
+    """Test that _split_mapping works correctly when all values have equal length."""
+    batch = {
+        'input_ids': torch.randn(8, 4),
+        'labels': torch.randn(8, 2),
+    }
+    microbatches = _split_mapping(batch, microbatch_size=4)
+    assert len(microbatches) == 2
+    assert microbatches[0]['input_ids'].shape == (4, 4)
+    assert microbatches[0]['labels'].shape == (4, 2)

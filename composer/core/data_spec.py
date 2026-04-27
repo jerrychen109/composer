@@ -60,9 +60,17 @@ def _split_mapping(m, microbatch_size: int):
             pass
         else:
             raise ValueError(f'Unsupported batch type: {type(v)}.')
-    num_chunks = 1  # Default to 1 chunks if there are no tensors or everything is primitive
-    if len(chunked.keys()) != 0:
-        num_chunks = len(list(chunked.values())[0])
+    num_chunks = 1  # Default to 1 chunk if there are no tensors or everything is primitive
+    if len(chunked) != 0:
+        chunk_lengths = {k: len(v) for k, v in chunked.items()}
+        unique_lengths = set(chunk_lengths.values())
+        if len(unique_lengths) > 1:
+            raise ValueError(
+                f'Batch split resulted in unequal chunks across keys. '
+                f'Chunk lengths: {chunk_lengths}. All non-primitive values in the batch '
+                f'must have the same first-dimension length.',
+            )
+        num_chunks = next(iter(unique_lengths))
     # Broadcast primitives to all chunks
     for k, v in m.items():
         if isinstance(v, (int, float, str, bool)):
